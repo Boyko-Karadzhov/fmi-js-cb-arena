@@ -1,0 +1,25 @@
+{
+  "name": "fmi-js-cb-arena",
+  "version": "1.0.0",
+  "description": "Project for Advanced JS course at FMI. A multiplayer guessing game.",
+  "main": ".\\app\\server\\index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Boyko-Karadzhov/fmi-js-cb-arena.git"
+  },
+  "author": "Boyko-Karadzhov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Boyko-Karadzhov/fmi-js-cb-arena/issues"
+  },
+  "homepage": "https://github.com/Boyko-Karadzhov/fmi-js-cb-arena#readme",
+  "devDependencies": {
+    "jasmine": "^2.4.1"
+  },
+  "dependencies": {
+    "express.io": "^1.1.13"
+  }
+}
