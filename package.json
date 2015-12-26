@@ -20,6 +20,7 @@
     "jasmine": "^2.4.1"
   },
   "dependencies": {
-    "express.io": "^1.1.13"
+    "express.io": "^1.1.13",
+    "node-uuid": "^1.4.7"
   }
 }
