@@ -9,11 +9,13 @@ var clone = require('clone');
 		name: Name of the game.
 		size: Size of the game. The number of players in it.
 		maxRounds: Maximum number of rounds. Game ends when reached.
+		roundTimeout: Maximum amount of time on a round in seconds. Game proceeds to next round after timeout.
 */
 var defaultOptions = {
 	name: null,
 	size: 1,
-	maxRounds: 20
+	maxRounds: 20,
+	roundTimeout: 2 * 60
 };
 
 function Game(options, cowsBulls) {
@@ -24,6 +26,13 @@ function Game(options, cowsBulls) {
 
 	cowsBulls = cowsBulls || cowsBullsModule;
 	options = extend(clone(defaultOptions), options);
+
+	var setRoundTimeout = function (round) {
+		setTimeout(function () {
+			if (round === currentRound)
+				endTurn();
+		}, options.roundTimeout);
+	};
 
 	var allPlayersAreDone = function () {
 		for (var playerName in playerRounds) {
@@ -41,6 +50,7 @@ function Game(options, cowsBulls) {
 		}
 
 		currentRound = currentRound + 1;
+		setRoundTimeout(currentRound);
 	};
 
 	var allPlayersGuessedRight = function () {
@@ -65,6 +75,7 @@ function Game(options, cowsBulls) {
 		if (state === Game.states.Waiting && playerNames.length === options.size) {
 			state = Game.states.Started;
 			secret = cowsBulls.newSecret();
+			setRoundTimeout(currentRound);
 		}
 
 		if (playerNames.length === 0) {
