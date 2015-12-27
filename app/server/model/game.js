@@ -31,7 +31,7 @@ function Game(options, cowsBulls) {
 		setTimeout(function () {
 			if (round === currentRound)
 				endTurn();
-		}, options.roundTimeout);
+		}, options.roundTimeout * 1000);
 	};
 
 	var allPlayersAreDone = function () {
