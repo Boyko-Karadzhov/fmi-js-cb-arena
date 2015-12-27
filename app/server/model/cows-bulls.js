@@ -14,7 +14,7 @@ module.exports = {
 			secret.push(digits[i]);
 			digits.splice(ticket, 1);
 		}
-		
+
 		return secret;
 	},
 

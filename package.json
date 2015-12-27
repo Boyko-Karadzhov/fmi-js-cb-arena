@@ -2,9 +2,9 @@
   "name": "fmi-js-cb-arena",
   "version": "1.0.0",
   "description": "Project for Advanced JS course at FMI. A multiplayer guessing game.",
-  "main": ".\\app\\server\\index.js",
+  "main": ".\\app\\server\\controller.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jasmine"
   },
   "repository": {
     "type": "git",
@@ -21,8 +21,11 @@
   },
   "dependencies": {
     "clone": "^1.0.2",
+    "coffee-script": "^1.10.0",
+    "connect": "^3.4.0",
     "express.io": "^1.1.13",
     "extend": "^3.0.0",
-    "node-uuid": "^1.4.7"
+    "node-uuid": "^1.4.7",
+    "path": "^0.12.7"
   }
 }
