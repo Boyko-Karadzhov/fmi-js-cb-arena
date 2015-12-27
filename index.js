@@ -11,5 +11,9 @@ app.get('/', function(req, res) {
 	res.sendfile(clientPath + 'index.html');
 });
 
-console.log('Listening at 7076...');
+app.io.route('sign-in', function (req) {
+
+});
+
+console.log('Cows & Bulls Arena: Listening at 7076...');
 app.listen(7076);
