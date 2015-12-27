@@ -1,9 +1,12 @@
 'use strict';
 
+var clone = require('clone');
+var allowedSymbols = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
 module.exports = {
 	newSecret: function () {
 		var ticket,
-			digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+			digits = clone(allowedSymbols);
 
 		var secret = [];
 		for (var i = 0; i < 4; i++) {
@@ -25,5 +28,23 @@ module.exports = {
 		}
 
 		return result;
+	},
+
+	validateQuestion: function(question) {
+		if (!Array.isArray(question) || question.length !== 4)
+			return false;
+
+		if (!question.every(function (c) { return c in allowedSymbols; }))
+			return false;
+
+		var temp = clone(question);
+		var currentChar;
+		while (temp.length > 0) {
+			currentChar = temp.splice(0, 1)[0];
+			if (temp.indexOf(currentChar) > -1)
+				return false;
+		}
+
+		return true;
 	}
 };

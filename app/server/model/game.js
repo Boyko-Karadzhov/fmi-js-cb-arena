@@ -1,24 +1,81 @@
 'use strict';
 
-var cowsBulls = require('./cows-bulls');
+var cowsBullsModule = require('./cows-bulls');
+var extend = require('extend');
+var clone = require('clone');
 
 /*
- Options:
-   name: Name of the game.
-   size: Size of the game. The number of players in it.
+	Options:
+		name: Name of the game.
+		size: Size of the game. The number of players in it.
+		maxRounds: Maximum number of rounds. Game ends when reached.
 */
-function Game(options) {
+var defaultOptions = {
+	name: null,
+	size: 1,
+	maxRounds: 20
+};
+
+function Game(options, cowsBulls) {
 	var state = Game.states.Waiting,
 		playerRounds = {},
-		secret = null;
+		secret = null,
+		currentRound = 1;
+
+	cowsBulls = cowsBulls || cowsBullsModule;
+	options = extend(clone(defaultOptions), options);
+
+	var allPlayersAreDone = function () {
+		for (var playerName in playerRounds) {
+			if (playerRounds[playerName].length < currentRound)
+				return false;
+		}
+
+		return true;
+	};
+
+	var endTurn = function () {
+		for (var playerName in playerRounds) {
+			if (playerRounds[playerName].length < currentRound)
+				playerRounds[playerName].push(null);
+		}
+
+		currentRound = currentRound + 1;
+	};
+
+	var allPlayersGuessedRight = function () {
+		var rounds, lastRound;
+		for (var playerName in playerRounds) {
+			rounds = playerRounds[playerName];
+			if (rounds.length > 0) {
+				lastRound = rounds[rounds.length - 1];
+				if (lastRound === null || lastRound.answer.bulls < 4)
+					return false;
+			}
+			else {
+				return false;
+			}
+		}
+
+		return true;
+	};
 
 	var ensureState = function () {
-		var playerCount = Object.keys(playerRounds).length;
-		if (playerCount === options.size) {
+		var playerNames = Object.keys(playerRounds);
+		if (state === Game.states.Waiting && playerNames.length === options.size) {
 			state = Game.states.Started;
 			secret = cowsBulls.newSecret();
 		}
-		else if (playerCount === 0) {
+
+		if (playerNames.length === 0) {
+			state = Game.states.Finished;
+		}
+
+		if (allPlayersAreDone()) {
+			endTurn();
+		}
+
+		if (currentRound > options.maxRounds || allPlayersGuessedRight()) {
 			state = Game.states.Finished;
 		}
 	};
@@ -26,7 +83,8 @@ function Game(options) {
 	this.details = function () {
 		return {
 			state: state,
-			name: options.name,
+			round: currentRound,
+			options: options,
 			players: Object.keys(playerRounds)
 		};
 	};
@@ -54,7 +112,21 @@ function Game(options) {
 	};
 
 	this.ask = function (player, question) {
-		
+		if (state !== Game.states.Started || !cowsBulls.validateQuestion(question))
+			return null;
+
+		var rounds = playerRounds[player];
+		if (rounds === undefined || rounds.length === currentRound)
+			return null;
+
+		rounds.push({
+			time: new Date().getTime(),
+			question: question,
+			answer: cowsBulls.evaluate(secret, question)
+		});
+
+		ensureState();
+		return rounds[rounds.length - 1];
 	};
 };
 

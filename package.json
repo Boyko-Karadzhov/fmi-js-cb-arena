@@ -20,7 +20,9 @@
     "jasmine": "^2.4.1"
   },
   "dependencies": {
+    "clone": "^1.0.2",
     "express.io": "^1.1.13",
+    "extend": "^3.0.0",
     "node-uuid": "^1.4.7"
   }
 }

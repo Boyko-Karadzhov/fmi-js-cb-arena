@@ -27,4 +27,20 @@ describe('Cows & Bulls', function() {
 		expect(result.cows).toBe(2);
 		expect(result.bulls).toBe(2);
 	});
+
+	it('should return true for a valid question', function () {
+		expect(cowsBulls.validateQuestion(['1', '2', '3', '4'])).toBe(true);
+	});
+
+	it('should return false for non-array question', function() {
+		expect(cowsBulls.validateQuestion('I are question')).toBe(false);
+	});
+
+	it('should return false for question with repeating digits', function() {
+		expect(cowsBulls.validateQuestion(['1', '2', '3', '3'])).toBe(false);
+	});
+
+	it('should return false for question with wrong size', function() {
+		expect(cowsBulls.validateQuestion(['1'])).toBe(false);
+	});
 });
