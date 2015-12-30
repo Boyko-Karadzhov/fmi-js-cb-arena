@@ -4,6 +4,7 @@
   "description": "Project for Advanced JS course at FMI. A multiplayer guessing game.",
   "main": ".\\app\\server\\controller.js",
   "scripts": {
+    "start": "node \".\\app\\server\\index.js\"",
     "test": "jasmine"
   },
   "repository": {

@@ -15,12 +15,23 @@
             <h1>Cows & Bulls Arena</h1>
         </div>
 
-        <button class="btn btn-lg btn-default">Testing styles</button>
+        <div cows-bulls-container style="display: none;">
+            <div cb-view="sign-in" style="display: none;">
+                [Sign in view]
+            </div>
+            <div cb-view="lobby" style="display: none;">
+                [Lobby view]
+            </div>
+            <div cb-view="in-game" style="display: none;">
+                [In-Game view]
+            </div>
+        </div>
     </div>
 
     <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/cows-bulls.js"></script>
 </body>
 
 </html>
