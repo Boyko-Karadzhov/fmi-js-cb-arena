@@ -16,5 +16,9 @@ app.io.route('sign-in', function (req) {
 	controller.signIn(req);
 });
 
+app.io.route('lobby-game-list', function (req) {
+	controller.lobbyGameList(req);
+});
+
 console.log('Cows & Bulls Arena: Listening at 7076...');
 app.listen(7076);

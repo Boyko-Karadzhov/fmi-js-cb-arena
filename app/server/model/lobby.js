@@ -60,7 +60,7 @@ Lobby.prototype = {
 
 	validatePlayer: function (name, code) {
 		if (this._players[name] !== undefined) {
-			if (this._players[name] === code) {
+			if (this._players[name].code === code) {
 				this._resetPlayerTimeout(name);
 				return true;
 			}

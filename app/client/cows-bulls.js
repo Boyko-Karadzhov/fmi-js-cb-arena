@@ -3,12 +3,15 @@
 ; (function ($, io) {
     var CowsBullsClient = function (container) {
         this._container = $(container);
+        this._currentView = null;
         this._views = {};
         this._io = io.connect();
-        this._code = null;
+        this._ticket = null;
 
         this._views['sign-in'] = new SignInView(this._container.find('div[cb-view="sign-in"]'), this._io);
-        this._views['lobby'] = new LobbyView(this._container.find('div[cb-view="lobby"]'), this._io);
+
+        var that = this;
+        this._views['lobby'] = new LobbyView(this._container.find('div[cb-view="lobby"]'), this._io, function () { return that._ticket; });
     };
 
     CowsBullsClient.prototype = {
@@ -18,9 +21,11 @@
 
             this._io.on('sign-in-success', $.proxy(this._signInSuccessHandler, this));
             this._io.on('sign-in-fail', $.proxy(this._signInFailHandler, this));
+            this._io.on('lobby-game-list', $.proxy(this._lobbyGameListHandler, this));
         },
 
         _showView: function (view) {
+            this._currentView = view;
             var that = this;
             $.each(Object.keys(this._views), function (i, val) {
                 that._views[val].toggle(val === view);
@@ -28,13 +33,20 @@
         },
 
         _signInSuccessHandler: function (data) {
-            this._code = data;
+            this._ticket = data;
             this._showView('lobby');
         },
 
         _signInFailHandler: function () {
             this._showView('sign-in');
             this._views['sign-in'].showError();
+        },
+
+        _lobbyGameListHandler: function (data) {
+            if (this._currentView !== 'lobby')
+                return;
+
+            this._views['lobby'].gameList(data);
         }
     };
 
@@ -94,7 +106,6 @@
     };
 
     SignInView.prototype._onShow = function () {
-        this._form[0].reset();
         this._alert.hide();
     };
 
@@ -104,12 +115,30 @@
 
     SignInView.prototype.constructor = SignInView;
 
-    var LobbyView = function (container, io) {
+    var LobbyView = function (container, io, getTicket) {
         CowsBullsViewBase.call(this, container, io);
+
+        this._gameList = container.find('div.list-group');
+        this._getTicket = getTicket;
+        this._noGamesWarning = container.find('div[role=alert]');
     };
 
-    LobbyView.prototype = Object.create(CowsBullsViewBase.prototype, {
-    });
+    LobbyView.prototype = Object.create(CowsBullsViewBase.prototype);
+
+    LobbyView.prototype._onShow = function () {
+        this._io.emit('lobby-game-list', this._getTicket());
+    };
+
+    LobbyView.prototype.gameList = function (data) {
+        this._gameList.empty();
+        var that = this;
+        $.each(data, function(i, game) {
+            var gameElement = $('<a class="list-group-item" />').text(game);
+            that._gameList.append(gameElement);
+        });
+
+        this._noGamesWarning.toggle(data.length === 0);
+    };
 
     LobbyView.prototype.constructor = LobbyView;
 

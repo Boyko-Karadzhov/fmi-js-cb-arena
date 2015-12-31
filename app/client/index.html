@@ -33,7 +33,24 @@
                 </form>
             </div>
             <div cb-view="lobby" style="display: none;">
-                [Lobby view]
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h2>Available games</h2>
+                        <div class="list-group">
+
+                        </div>
+                        <div class="alert alert-warning" role="alert" style="display: none;">No games are created yet.</div>
+                    </div>
+                    <div class="col-lg-6">
+                        <h2>Details</h2>
+                    </div>
+                </div>
+                <div class="row">
+                    <p><a class="btn btn-primary btn-lg" role="button">Create a new game</a></p>
+                </div>
+            </div>
+            <div cb-view="new-game" style="display: none;">
+                [New-Game view]
             </div>
             <div cb-view="in-game" style="display: none;">
                 [In-Game view]
