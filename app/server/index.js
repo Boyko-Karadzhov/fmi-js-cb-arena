@@ -3,6 +3,7 @@ var express = require('express.io'),
 	Controller = require('./controller');
 
 var app = express();
+var controller = new Controller();
 app.http().io();
 
 var clientPath = path.resolve('app\\client\\');
@@ -12,7 +13,7 @@ app.get('/', function(req, res) {
 });
 
 app.io.route('sign-in', function (req) {
-
+	controller.signIn(req);
 });
 
 console.log('Cows & Bulls Arena: Listening at 7076...');

@@ -17,7 +17,20 @@
 
         <div cows-bulls-container style="display: none;">
             <div cb-view="sign-in" style="display: none;">
-                [Sign in view]
+                <form role="form">
+                    <fieldset>
+                        <legend>Please enter display name to start:</legend>
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Dispaly name" required>
+                            <span class="input-group-btn">
+                                <input class="btn btn-default" type="submit" value="Go!" />
+                            </span>
+                        </div>
+                        <div class="alert alert-danger" role="alert" style="display: none;">
+                            This name appears to be taken. Please choose another one.
+                        </div>
+                    </fieldset>
+                </form>
             </div>
             <div cb-view="lobby" style="display: none;">
                 [Lobby view]

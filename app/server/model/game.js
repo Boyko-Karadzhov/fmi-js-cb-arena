@@ -18,45 +18,97 @@ var defaultOptions = {
 	roundTimeout: 2 * 60
 };
 
-function Game(options, cowsBulls) {
-	var state = Game.states.Waiting,
-		playerRounds = {},
-		secret = null,
-		currentRound = 1;
+var Game = function (options, cowsBulls) {
+	this._state = Game.states.Waiting;
+	this._playerRounds = {};
+	this._secret = null;
+	this._currentRound = 1;
 
-	cowsBulls = cowsBulls || cowsBullsModule;
-	options = extend(clone(defaultOptions), options);
+	this._cowsBulls = cowsBulls || cowsBullsModule;
+	this._options = extend(clone(defaultOptions), options);
+};
 
-	var setRoundTimeout = function (round) {
+Game.prototype = {
+	details: function () {
+		return {
+			state: this._state,
+			round: this._currentRound,
+			options: this._options,
+			players: Object.keys(this._playerRounds)
+		};
+	},
+
+	join: function (player) {
+		if (this._playerRounds[player] === undefined && this._state === Game.states.Waiting) {
+			this._playerRounds[player] = [];
+			this._ensureState();
+			return true;
+		}
+		else {
+			return false;
+		}
+	},
+
+	leave: function (player) {
+		if (this._playerRounds[player] !== undefined) {
+			delete this._playerRounds[player];
+			this._ensureState();
+			return true;
+		}
+		else {
+			return false;
+		}
+	},
+
+	ask: function (player, question) {
+		if (this._state !== Game.states.Started || !this._cowsBulls.validateQuestion(question))
+			return null;
+
+		var rounds = this._playerRounds[player];
+		if (rounds === undefined || rounds.length === this._currentRound)
+			return null;
+
+		rounds.push({
+			time: new Date().getTime(),
+			question: question,
+			answer: this._cowsBulls.evaluate(this._secret, question)
+		});
+
+		this._ensureState();
+		return rounds[rounds.length - 1];
+	},
+
+	_setRoundTimeout: function (round) {
+		var that = this;
 		setTimeout(function () {
-			if (round === currentRound)
-				endTurn();
-		}, options.roundTimeout * 1000);
-	};
+			if (round === that._currentRound)
+				that._endTurn();
+		}, this._options.roundTimeout * 1000);
+	},
 
-	var allPlayersAreDone = function () {
-		for (var playerName in playerRounds) {
-			if (playerRounds[playerName].length < currentRound)
+	_allPlayersAreDone: function () {
+		for (var playerName in this._playerRounds) {
+			if (this._playerRounds[playerName].length < this._currentRound)
 				return false;
 		}
 
 		return true;
-	};
+	},
 
-	var endTurn = function () {
-		for (var playerName in playerRounds) {
-			if (playerRounds[playerName].length < currentRound)
-				playerRounds[playerName].push(null);
+	_endTurn: function () {
+		for (var playerName in this._playerRounds) {
+			if (this._playerRounds[playerName].length < this._currentRound)
+				this._playerRounds[playerName].push(null);
 		}
 
-		currentRound = currentRound + 1;
-		setRoundTimeout(currentRound);
-	};
+		this._currentRound = this._currentRound + 1;
+		this._setRoundTimeout(this._currentRound);
+	},
 
-	var allPlayersGuessedRight = function () {
+	_allPlayersGuessedRight: function () {
 		var rounds, lastRound;
-		for (var playerName in playerRounds) {
-			rounds = playerRounds[playerName];
+		for (var playerName in this._playerRounds) {
+			rounds = this._playerRounds[playerName];
 			if (rounds.length > 0) {
 				lastRound = rounds[rounds.length - 1];
 				if (lastRound === null || lastRound.answer.bulls < 4)
@@ -68,78 +120,31 @@ function Game(options, cowsBulls) {
 		}
 
 		return true;
-	};
+	},
 
-	var ensureState = function () {
-		var playerNames = Object.keys(playerRounds);
-		if (state === Game.states.Waiting && playerNames.length === options.size) {
-			state = Game.states.Started;
-			secret = cowsBulls.newSecret();
-			setRoundTimeout(currentRound);
+	_ensureState: function () {
+		var playerNames = Object.keys(this._playerRounds);
+		if (this._state === Game.states.Waiting && playerNames.length === this._options.size) {
+			this._state = Game.states.Started;
+			this._secret = this._cowsBulls.newSecret();
+			this._setRoundTimeout(this._currentRound);
 		}
 
 		if (playerNames.length === 0) {
-			state = Game.states.Finished;
+			this._state = Game.states.Finished;
 		}
 
-		if (allPlayersAreDone()) {
-			endTurn();
+		if (this._allPlayersAreDone()) {
+			this._endTurn();
 		}
 
-		if (currentRound > options.maxRounds || allPlayersGuessedRight()) {
-			state = Game.states.Finished;
+		if (this._currentRound > this._options.maxRounds || this._allPlayersGuessedRight()) {
+			this._state = Game.states.Finished;
 		}
-	};
-
-	this.details = function () {
-		return {
-			state: state,
-			round: currentRound,
-			options: options,
-			players: Object.keys(playerRounds)
-		};
-	};
-
-	this.join = function (player) {
-		if (playerRounds[player] === undefined && state === Game.states.Waiting) {
-			playerRounds[player] = [];
-			ensureState();
-			return true;
-		}
-		else {
-			return false;
-		}
-	};
-
-	this.leave = function (player) {
-		if (playerRounds[player] !== undefined) {
-			delete playerRounds[player];
-			ensureState();
-			return true;
-		}
-		else {
-			return false;
-		}
-	};
-
-	this.ask = function (player, question) {
-		if (state !== Game.states.Started || !cowsBulls.validateQuestion(question))
-			return null;
-
-		var rounds = playerRounds[player];
-		if (rounds === undefined || rounds.length === currentRound)
-			return null;
-
-		rounds.push({
-			time: new Date().getTime(),
-			question: question,
-			answer: cowsBulls.evaluate(secret, question)
-		});
-
-		ensureState();
-		return rounds[rounds.length - 1];
-	};
+	}
 };
+
+Game.prototype.constructor = Game;
 
 Game.states = {
 	Waiting: 'waiting',

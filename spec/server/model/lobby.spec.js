@@ -38,14 +38,14 @@ describe('Lobby', function () {
 
 	it('should return true for a unique player signIn', function () {
 		var lobby = new Lobby();
-		expect(lobby.signIn('my player')).toBe(true);
+		expect(lobby.signIn('my player')).not.toBe(null);
 	});
 
 	it('should return false for a non-unique player signIn', function () {
 		var name = 'my player';
 		var lobby = new Lobby();
 		lobby.signIn(name);
-		expect(lobby.signIn(name)).toBe(false);
+		expect(lobby.signIn(name)).toBe(null);
 	});
 
 	it('should remove player from list on signOut', function () {

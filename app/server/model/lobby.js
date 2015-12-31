@@ -3,115 +3,120 @@
 var uuid = require('node-uuid');
 var Game = require('./game');
 
-function Lobby() {
-	var playerActivityTimeout = 10 * 60 * 1000,
-		games = {},
-		players = {};
+var Lobby = function () {
+	this._playerActivityTimeout = 10 * 60 * 1000;
+	this._games = {};
+	this._players = {};
+};
 
-	var resetPlayerTimeout = function (player) {
-		if (players[player] === undefined)
-			return;
-
-		if (players[player].timeoutId)
-			clearTimeout(players[player].timeoutId);
-
-		var that = this;
-		var timeoutId = setTimeout(function () {
-			that.signOut(player);
-		}, playerActivityTimeout);
-		players[player].timeoutId = timeoutId;
-	};
-
-	var ensureGame = function (game) {
-		if (games[game] !== undefined && games[game].details().state === Game.states.Finished) {
-			delete games[game];
-		}
-	};
-
-	this.newGame = function (options) {
-		if (options.name !== undefined && options.name !== null && games[options.name] === undefined) {
-			games[options.name] = new Game(options);
+Lobby.prototype = {
+	newGame: function (options) {
+		if (options.name !== undefined && options.name !== null && this._games[options.name] === undefined) {
+			this._games[options.name] = new Game(options);
 			return true;
 		}
 		else {
 			return false;
 		}
-	};
+	},
 
-	this.gameList = function () {
+	gameList: function () {
 		var list = [];
-		for (var name in games) {
-			if (games[name].details().state === Game.states.Waiting) {
+		for (var name in this._games) {
+			if (this._games[name].details().state === Game.states.Waiting) {
 				list.push(name);
 			}
 		}
 
 		return list;
-	};
+	},
 
-	this.playerList = function () {
-		return Object.keys(players);
-	};
+	playerList: function () {
+		return Object.keys(this._players);
+	},
 
-	this.signIn = function (name) {
-		if (players[name] === undefined) {
-			players[name] = {
+	signIn: function (name) {
+		if (this._players[name] === undefined) {
+			this._players[name] = {
 				timeoutId: null,
 				code: uuid.v4()
 			};
-			resetPlayerTimeout(name);
-			return true;
+			this._resetPlayerTimeout(name);
+			return this._players[name];
 		}
 		else {
-			return false;
+			return null;
 		}
-	};
+	},
 
-	this.signOut = function (name) {
-		if (players[name] !== undefined) {
-			for (var game in games)
-				games[game].leave(name);
+	signOut: function (name) {
+		if (this._players[name] !== undefined) {
+			for (var game in this._games)
+				this._games[game].leave(name);
 
-			delete players[name];
+			delete this._players[name];
 		}
-	};
+	},
 
-	this.validatePlayer = function (name, code) {
-		if (players[name] !== undefined) {
-			if (players[name] === code) {
-				resetPlayerTimeout(name);
+	validatePlayer: function (name, code) {
+		if (this._players[name] !== undefined) {
+			if (this._players[name] === code) {
+				this._resetPlayerTimeout(name);
 				return true;
 			}
 		}
 
 		return false;
-	};
+	},
 
-	this.join = function (player, game) {
-		return games[game] !== undefined && games[game].join(player);
-	};
+	join: function (player, game) {
+		return this._games[game] !== undefined && this._games[game].join(player);
+	},
 
-	this.leave = function (player, game) {
-		var result = games[game] !== undefined && games[game].leave(player);
-		ensureGame(game);
+	leave: function (player, game) {
+		var result = this._games[game] !== undefined && this._games[game].leave(player);
+		this._ensureGame(game);
 		return result;
-	};
+	},
 
-	this.ask = function (player, game, question) {
-		if (games[game] === undefined)
+	ask: function (player, game, question) {
+		if (this._games[game] === undefined)
 			return null;
 
-		var result = games[game].ask(player, question);
-		ensureGame(game);
+		var result = this._games[game].ask(player, question);
+		this._ensureGame(game);
 		return result;
-	};
+	},
 
-	this.gameDetails = function (game) {
-		if (games[game] !== undefined)
-			return games[game].details();
+	gameDetails: function (game) {
+		if (this._games[game] !== undefined)
+			return this._games[game].details();
 		else
 			return null;
-	};
+	},
+
+	_resetPlayerTimeout: function (player) {
+		if (this._players[player] === undefined)
+			return;
+
+		if (this._players[player].timeoutId)
+			clearTimeout(this._players[player].timeoutId);
+
+		var that = this;
+		var timeoutId = setTimeout(function (lobby) {
+			that.signOut(player);
+		}, this._playerActivityTimeout);
+
+		this._players[player].timeoutId = timeoutId;
+	},
+
+	_ensureGame: function (game) {
+		if (this._games[game] !== undefined && this._games[game].details().state === Game.states.Finished) {
+			delete this._games[game];
+		}
+	}
 };
+
+Lobby.prototype.constructor = Lobby;
 
 module.exports = Lobby;
