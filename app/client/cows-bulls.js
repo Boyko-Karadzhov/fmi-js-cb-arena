@@ -174,10 +174,20 @@
         CowsBullsViewBase.call(this, container, io);
 
         this._getTicket = getTicket;
+        this._cancelButton = container.find('[cb-role="cancel-button"]');
     };
 
     NewGameView.prototype = Object.create(CowsBullsViewBase.prototype);
     NewGameView.prototype.constructor = NewGameView;
+
+    NewGameView.prototype._onInitialize = function () {
+        this._cancelButton.click($.proxy(this._cancelButtonClickHandler, this));
+    };
+
+    NewGameView.prototype._cancelButtonClickHandler = function () {
+        this._container.trigger('switch-view', ['lobby']);
+        return false;
+    };
 
     $('[cows-bulls-container]').each(function () {
         new CowsBullsClient(this).initialize();
