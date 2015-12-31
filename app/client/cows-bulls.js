@@ -129,6 +129,7 @@
         this._noGamesWarning = container.find('div[cb-role="nogames-warning"]');
         this._detailsContainer = container.find('div[cb-role="details-container"]');
         this._createNewGameButton = container.find('[cb-role="new-game-button"]');
+        this._signOutButton = container.find('[cb-role="signout-button"]');
     };
 
     LobbyView.prototype = Object.create(CowsBullsViewBase.prototype);
@@ -141,10 +142,19 @@
 
     LobbyView.prototype._onInitialize = function () {
         this._createNewGameButton.click($.proxy(this._createNewGameButtonClickHandler, this));
+        this._signOutButton.click($.proxy(this._signOutButtonClickHandler, this));
     };
 
     LobbyView.prototype._createNewGameButtonClickHandler = function () {
         this._container.trigger('switch-view', ['new-game']);
+    };
+
+    LobbyView.prototype._signOutButtonClickHandler = function () {
+        var ticket = this._getTicket();
+        this._io.emit('sign-out', ticket);
+        ticket.code = null;
+        ticket.name = null;
+        this._container.trigger('switch-view', ['sign-in']);
     };
 
     LobbyView.prototype.gameList = function (data) {

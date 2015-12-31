@@ -29,6 +29,12 @@ Controller.prototype = {
         }
     },
 
+    signOut: function (req) {
+        if (this._validate(req.data)) {
+            lobby.signOut(req.data.name);
+        }
+    },
+
     _validate: function (ticket) {
         if (!ticket || !ticket.name || !ticket.code)
             return false;
