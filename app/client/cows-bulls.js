@@ -11,7 +11,9 @@
         this._views['sign-in'] = new SignInView(this._container.find('div[cb-view="sign-in"]'), this._io);
 
         var that = this;
-        this._views['lobby'] = new LobbyView(this._container.find('div[cb-view="lobby"]'), this._io, function () { return that._ticket; });
+        var getTicket = function () { return that._ticket; };
+        this._views['lobby'] = new LobbyView(this._container.find('div[cb-view="lobby"]'), this._io, getTicket);
+        this._views['new-game'] = new NewGameView(this._container.find('div[cb-view="new-game"]'), this._io, getTicket);
     };
 
     CowsBullsClient.prototype = {
@@ -22,6 +24,11 @@
             this._io.on('sign-in-success', $.proxy(this._signInSuccessHandler, this));
             this._io.on('sign-in-fail', $.proxy(this._signInFailHandler, this));
             this._io.on('lobby-game-list', $.proxy(this._lobbyGameListHandler, this));
+
+            var that = this;
+            $(this._container.find('[cb-view]')).on('switch-view', function (event, view) {
+                that._showView(view);
+            });
         },
 
         _showView: function (view) {
@@ -94,6 +101,7 @@
     };
 
     SignInView.prototype = Object.create(CowsBullsViewBase.prototype);
+    SignInView.prototype.constructor = SignInView;
 
     SignInView.prototype.showError = function () {
         this._alert.show();
@@ -113,34 +121,53 @@
         this._form.submit($.proxy(this._submitHandler, this));
     };
 
-    SignInView.prototype.constructor = SignInView;
-
     var LobbyView = function (container, io, getTicket) {
         CowsBullsViewBase.call(this, container, io);
 
         this._gameList = container.find('div.list-group');
         this._getTicket = getTicket;
-        this._noGamesWarning = container.find('div[role=alert]');
+        this._noGamesWarning = container.find('div[cb-role="nogames-warning"]');
+        this._detailsContainer = container.find('div[cb-role="details-container"]');
+        this._createNewGameButton = container.find('[cb-role="new-game-button"]');
     };
 
     LobbyView.prototype = Object.create(CowsBullsViewBase.prototype);
+    LobbyView.prototype.constructor = LobbyView;
 
     LobbyView.prototype._onShow = function () {
+        this._detailsContainer.hide();
         this._io.emit('lobby-game-list', this._getTicket());
+    };
+
+    LobbyView.prototype._onInitialize = function () {
+        this._createNewGameButton.click($.proxy(this._createNewGameButtonClickHandler, this));
+    };
+
+    LobbyView.prototype._createNewGameButtonClickHandler = function () {
+        this._container.trigger('switch-view', ['new-game']);
     };
 
     LobbyView.prototype.gameList = function (data) {
         this._gameList.empty();
         var that = this;
         $.each(data, function(i, game) {
-            var gameElement = $('<a class="list-group-item" />').text(game);
+            var gameElement = $('<a class="list-group-item" />').text(game).click(function () {
+                that._detailsContainer.show();
+            });
             that._gameList.append(gameElement);
         });
 
         this._noGamesWarning.toggle(data.length === 0);
     };
 
-    LobbyView.prototype.constructor = LobbyView;
+    var NewGameView = function (container, io, getTicket) {
+        CowsBullsViewBase.call(this, container, io);
+
+        this._getTicket = getTicket;
+    };
+
+    NewGameView.prototype = Object.create(CowsBullsViewBase.prototype);
+    NewGameView.prototype.constructor = NewGameView;
 
     $('[cows-bulls-container]').each(function () {
         new CowsBullsClient(this).initialize();

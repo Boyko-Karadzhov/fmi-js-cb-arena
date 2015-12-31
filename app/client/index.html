@@ -32,6 +32,7 @@
                     </fieldset>
                 </form>
             </div>
+
             <div cb-view="lobby" style="display: none;">
                 <div class="row">
                     <div class="col-lg-6">
@@ -39,19 +40,55 @@
                         <div class="list-group">
 
                         </div>
-                        <div class="alert alert-warning" role="alert" style="display: none;">No games are created yet.</div>
+                        <div class="alert alert-warning" cb-role="nogames-warning" role="alert" style="display: none;">No games are created yet.</div>
                     </div>
                     <div class="col-lg-6">
-                        <h2>Details</h2>
+                        <div cb-role="details-container" style="display: none;">
+                            <h2>Details</h2>
+                        </div>
                     </div>
                 </div>
                 <div class="row">
-                    <p><a class="btn btn-primary btn-lg" role="button">Create a new game</a></p>
+                    <p>
+                        <a class="btn btn-primary btn-lg" role="button" cb-role="new-game-button">Create a new game</a>
+                        <a class="btn btn-default btn-sm pull-right" role="button" cb-role="signout-button">Sign Out</a>
+                    </p>
                 </div>
             </div>
+
             <div cb-view="new-game" style="display: none;">
-                [New-Game view]
+                <form role="form" class="form-horizontal">
+                    <fieldset>
+                        <legend>Create a new game</legend>
+                        <div class="form-group">
+                            <label class="control-label col-sm-2" for="test1">Test:</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="test1" placeholder="Enter test">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-2" for="test2">Test:</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="test2" placeholder="Enter test">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-offset-2 col-sm-10">
+                                <div class="checkbox">
+                                    <label><input type="checkbox"> Test</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-offset-2 col-sm-10">
+                                <button type="submit" class="btn btn-primary btn-lg">Create the game</button>
+                                <button type="submit" class="btn btn-default btn-lg">Cancel</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
             </div>
+
             <div cb-view="in-game" style="display: none;">
                 [In-Game view]
             </div>

@@ -1,6 +1,7 @@
 var express = require('express.io'),
 	path = require('path'),
-	Controller = require('./controller');
+	Controller = require('./controller'),
+	decamelize = require('decamelize');
 
 var app = express();
 var controller = new Controller();
@@ -12,12 +13,15 @@ app.get('/', function(req, res) {
 	res.sendfile(clientPath + 'index.html');
 });
 
-app.io.route('sign-in', function (req) {
-	controller.signIn(req);
-});
-
-app.io.route('lobby-game-list', function (req) {
-	controller.lobbyGameList(req);
+Object.keys(Controller.prototype).forEach(function (prop) {
+	if (!prop.startsWith('_') && typeof controller[prop] === 'function' && prop !== 'constructor') {
+		var routePattern = decamelize(prop, '-');
+		(function (action) {
+			app.io.route(routePattern, function (req) {
+				controller[action](req);
+			});
+		})(prop);
+	}
 });
 
 console.log('Cows & Bulls Arena: Listening at 7076...');
