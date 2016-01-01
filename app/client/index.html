@@ -5,7 +5,6 @@
 <title>Cows & Bulls Arena</title>
 
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
 
 </head>
 
@@ -44,10 +43,11 @@
                     </div>
                     <div class="col-lg-6">
                         <div cb-role="details-container" style="display: none;">
-                            <h2>Details</h2>
+                            <h2></h2>
                         </div>
                     </div>
                 </div>
+                <div class="row alert alert-danger" cb-role="lobby-fail-alert" role="alert" style="display: none;"></div>
                 <div class="row">
                     <p>
                         <a class="btn btn-primary btn-lg" role="button" cb-role="new-game-button">Create a new game</a>
@@ -101,7 +101,19 @@
             </div>
 
             <div cb-view="in-game" style="display: none;">
-                [In-Game view]
+                <h2></h2>
+                <table class="table table-striped">
+                    <tr>
+                        <td>1234</td>
+                        <td>1 bull</td>
+                        <td>2 cows</td>
+                    </tr>
+                    <tr>
+                        <td>1234</td>
+                        <td>1 bull</td>
+                        <td>2 cows</td>
+                    </tr>
+                </table>
             </div>
         </div>
     </div>

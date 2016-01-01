@@ -74,7 +74,25 @@ Controller.prototype = {
                 req.io.emit('join', req.data.game);
             }
             else {
-                // TODO: handle this
+                req.io.emit('lobby-fail', 'Could not join "' + req.data.name + '".');
+            }
+        }
+        else {
+            this._failSignIn(req);
+        }
+    },
+
+    gameDetails: function (req) {
+        if (!req.data || !req.data.game)
+            return;
+
+        if (this._validate(req.data.ticket)) {
+            var details = this._lobby.gameDetails(req.data.game);
+            if (details) {
+                req.io.emit('game-details', details);
+            }
+            else {
+                req.io.emit('lobby-fail', 'Could not get details of "' + req.data.game + '".');
             }
         }
         else {

@@ -121,6 +121,7 @@
         this._createNewGameButton = container.find('[cb-role="new-game-button"]');
         this._signOutButton = container.find('[cb-role="signout-button"]');
         this._displayName = container.find('[cb-role="display-name"]');
+        this._lobbyFailAlert = container.find('[cb-role="lobby-fail-alert"]');
     };
 
     LobbyView.prototype = Object.create(CowsBullsViewBase.prototype);
@@ -129,6 +130,7 @@
     LobbyView.prototype._onShow = function () {
         var ticket = this._getTicket();
         this._detailsContainer.hide();
+        this._lobbyFailAlert.hide();
         this._displayName.text(ticket.name);
 
         this._io.emit('lobby-game-list', ticket);
@@ -140,6 +142,8 @@
 
         this._io.on('lobby-game-list', $.proxy(this._gameListHandler, this));
         this._io.on('join', $.proxy(this._joinHandler, this));
+        this._io.on('game-details', $.proxy(this._gameDetailsHandler, this));
+        this._io.on('lobby-fail', $.proxy(this._failHandler, this));
     };
 
     LobbyView.prototype._gameListHandler = function (data) {
@@ -150,6 +154,19 @@
 
     LobbyView.prototype._joinHandler = function (data) {
         this._container.trigger('switch-view', ['in-game', data]);
+    };
+
+    LobbyView.prototype._failHandler = function (data) {
+        this._lobbyFailAlert.text(data);
+        this._lobbyFailAlert.show();
+    };
+
+    LobbyView.prototype._gameDetailsHandler = function (data) {
+        this._gameList.find('a.list-group-item').toggleClass('active', false);
+        this._gameList.find('a.list-group-item').filter(function () { return $(this).text() === data.options.name; }).toggleClass('active', true);
+
+        this._detailsContainer.find('h2').text(data.options.name);
+        this._detailsContainer.show();
     };
 
     LobbyView.prototype._createNewGameButtonClickHandler = function () {
@@ -169,7 +186,7 @@
         var that = this;
         $.each(data, function(i, game) {
             var gameElement = $('<a class="list-group-item" />').text(game).click(function () {
-                that._detailsContainer.show();
+                that._io.emit('game-details', { ticket: that._getTicket(), game: game });
             });
 
             that._gameList.append(gameElement);
@@ -236,7 +253,7 @@
     InGameView.prototype.constructor = InGameView;
 
     InGameView.prototype._onShow = function (data) {
-        console.log('joined: ' + data);
+        this._container.find('h2').text(data);
     };
 
     $('[cows-bulls-container]').each(function () {
