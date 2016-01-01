@@ -7,13 +7,14 @@ var Controller = function () {
 
 Controller.prototype = {
     signIn: function (req) {
-        if (!req.data)
+        if (!req.data || !req.data.trim())
             return;
 
-        var result = lobby.signIn(req.data);
+        var name = req.data.trim();
+        var result = lobby.signIn(name);
         if (result) {
-            this._activeSessions[req.data] = req.io;
-            req.io.emit('sign-in-success', { name: req.data, code: result.code });
+            this._activeSessions[name] = req.io;
+            req.io.emit('sign-in-success', { name: name, code: result.code });
         }
         else {
             this._failSignIn(req);
@@ -32,6 +33,18 @@ Controller.prototype = {
     signOut: function (req) {
         if (this._validate(req.data)) {
             lobby.signOut(req.data.name);
+        }
+    },
+
+    newGame: function (req) {
+        if (!req.data || !req.data.options)
+            return;
+
+        if (this._validate(req.data.ticket)) {
+            req.io.emit('new-game', lobby.newGame(req.data.options));
+        }
+        else {
+            this._failSignIn(req);
         }
     },
 

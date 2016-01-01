@@ -8,10 +8,9 @@
         this._io = io.connect();
         this._ticket = null;
 
-        this._views['sign-in'] = new SignInView(this._container.find('div[cb-view="sign-in"]'), this._io);
-
         var that = this;
         var getTicket = function () { return that._ticket; };
+        this._views['sign-in'] = new SignInView(this._container.find('div[cb-view="sign-in"]'), this._io, getTicket);
         this._views['lobby'] = new LobbyView(this._container.find('div[cb-view="lobby"]'), this._io, getTicket);
         this._views['new-game'] = new NewGameView(this._container.find('div[cb-view="new-game"]'), this._io, getTicket);
     };
@@ -57,10 +56,11 @@
         }
     };
 
-    var CowsBullsViewBase = function (container, io) {
+    var CowsBullsViewBase = function (container, io, getTicket) {
         this._container = container;
         this._io = io;
         this._isInitialized = false;
+        this._getTicket = getTicket;
     };
 
     CowsBullsViewBase.prototype = {
@@ -93,8 +93,8 @@
 
     CowsBullsViewBase.prototype.constructor = CowsBullsViewBase;
 
-    var SignInView = function (container, io) {
-        CowsBullsViewBase.call(this, container, io);
+    var SignInView = function (container, io, getTicket) {
+        CowsBullsViewBase.call(this, container, io, getTicket);
         this._form = container.find('form');
         this._input = container.find('input');
         this._alert = container.find('[role="alert"]');
@@ -109,7 +109,7 @@
 
     SignInView.prototype._submitHandler = function () {
         this.toggle(false);
-        this._io.emit('sign-in', this._input.val());
+        this._io.emit('sign-in', this._input.val().trim());
         return false;
     };
 
@@ -122,22 +122,25 @@
     };
 
     var LobbyView = function (container, io, getTicket) {
-        CowsBullsViewBase.call(this, container, io);
+        CowsBullsViewBase.call(this, container, io, getTicket);
 
         this._gameList = container.find('div.list-group');
-        this._getTicket = getTicket;
         this._noGamesWarning = container.find('div[cb-role="nogames-warning"]');
         this._detailsContainer = container.find('div[cb-role="details-container"]');
         this._createNewGameButton = container.find('[cb-role="new-game-button"]');
         this._signOutButton = container.find('[cb-role="signout-button"]');
+        this._displayName = container.find('[cb-role="display-name"]');
     };
 
     LobbyView.prototype = Object.create(CowsBullsViewBase.prototype);
     LobbyView.prototype.constructor = LobbyView;
 
     LobbyView.prototype._onShow = function () {
+        var ticket = this._getTicket();
         this._detailsContainer.hide();
-        this._io.emit('lobby-game-list', this._getTicket());
+        this._displayName.text(ticket.name);
+
+        this._io.emit('lobby-game-list', ticket);
     };
 
     LobbyView.prototype._onInitialize = function () {
@@ -164,6 +167,7 @@
             var gameElement = $('<a class="list-group-item" />').text(game).click(function () {
                 that._detailsContainer.show();
             });
+
             that._gameList.append(gameElement);
         });
 
@@ -171,10 +175,10 @@
     };
 
     var NewGameView = function (container, io, getTicket) {
-        CowsBullsViewBase.call(this, container, io);
+        CowsBullsViewBase.call(this, container, io, getTicket);
 
-        this._getTicket = getTicket;
         this._cancelButton = container.find('[cb-role="cancel-button"]');
+        this._form = container.find('form');
     };
 
     NewGameView.prototype = Object.create(CowsBullsViewBase.prototype);
@@ -182,11 +186,33 @@
 
     NewGameView.prototype._onInitialize = function () {
         this._cancelButton.click($.proxy(this._cancelButtonClickHandler, this));
+        this._form.submit($.proxy(this._formSubmitHandler, this));
+        this._io.on('new-game', $.proxy(this._newGameResponseHandler, this));
+    };
+
+    NewGameView.prototype._formSubmitHandler = function () {
+        var options = {};
+        this._form.find('input[name]').each(function () {
+            options[$.camelCase(this.name)] = this.value.trim();
+        });
+
+        this._io.emit('new-game', {
+            ticket: this._getTicket(),
+            options: options
+        });
+
+        return false;
     };
 
     NewGameView.prototype._cancelButtonClickHandler = function () {
         this._container.trigger('switch-view', ['lobby']);
         return false;
+    };
+
+    NewGameView.prototype._newGameResponseHandler = function (data) {
+        if (data) {
+            this._container.trigger('switch-view', ['lobby']);
+        }
     };
 
     $('[cows-bulls-container]').each(function () {

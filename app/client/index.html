@@ -21,7 +21,7 @@
                     <fieldset>
                         <legend>Please enter display name to start:</legend>
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Dispaly name" required>
+                            <input type="text" class="form-control" placeholder="Dispaly name" required pattern=".*\S+.*">
                             <span class="input-group-btn">
                                 <input class="btn btn-default" type="submit" value="Go!" />
                             </span>
@@ -51,7 +51,12 @@
                 <div class="row">
                     <p>
                         <a class="btn btn-primary btn-lg" role="button" cb-role="new-game-button">Create a new game</a>
-                        <a class="btn btn-default btn-sm pull-right" role="button" cb-role="signout-button">Sign Out</a>
+
+                        <span class="h4 pull-right">
+                            Signed in as:&nbsp;
+                            <strong cb-role="display-name"></strong>&nbsp;
+                            <a class="btn btn-default btn-sm" role="button" cb-role="signout-button">Sign Out</a>
+                        </span>
                     </p>
                 </div>
             </div>
@@ -61,22 +66,27 @@
                     <fieldset>
                         <legend>Create a new game</legend>
                         <div class="form-group">
-                            <label class="control-label col-sm-2" for="test1">Test:</label>
+                            <label class="control-label col-sm-2" for="game-name">Name:</label>
                             <div class="col-sm-10">
-                                <input type="text" class="form-control" id="test1" placeholder="Enter test">
+                                <input type="text" class="form-control" id="game-name" placeholder="Name of the game" required pattern=".*\S+.*" name="name" />
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="control-label col-sm-2" for="test2">Test:</label>
+                            <label class="control-label col-sm-2" for="game-size">Size:</label>
                             <div class="col-sm-10">
-                                <input type="text" class="form-control" id="test2" placeholder="Enter test">
+                                <input type="number" class="form-control" id="game-size" value="1" min="1" name="size" />
                             </div>
                         </div>
                         <div class="form-group">
-                            <div class="col-sm-offset-2 col-sm-10">
-                                <div class="checkbox">
-                                    <label><input type="checkbox"> Test</label>
-                                </div>
+                            <label class="control-label col-sm-2" for="game-max-rounds">Max rounds:</label>
+                            <div class="col-sm-10">
+                                <input type="number" class="form-control" id="game-max-rounds" value="20" min="1" name="max-rounds" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-2" for="game-round-timeout">Round timeout (sec):</label>
+                            <div class="col-sm-10">
+                                <input type="number" class="form-control" id="game-round-timeout" value="120" step="5" min="10" max="590" name="round-timeout" />
                             </div>
                         </div>
                         <div class="form-group">
