@@ -34,7 +34,8 @@ Game.prototype = {
 			state: this._state,
 			round: this._currentRound,
 			options: this._options,
-			players: Object.keys(this._playerRounds)
+			players: Object.keys(this._playerRounds),
+			winner: this._winner()
 		};
 	},
 
@@ -76,6 +77,20 @@ Game.prototype = {
 
 		this._ensureState();
 		return rounds[rounds.length - 1];
+	},
+
+	_winner: function () {
+		if (this._state !== Game.states.Finished)
+			return null;
+
+		var currentWinner = null;
+		for (var player in this._playerRounds) {
+			if (currentWinner == null || this._playerRounds[player].length < this._playerRounds[currentWinner].length) {
+				currentWinner = player;
+			}
+		}
+
+		return currentWinner;
 	},
 
 	_setRoundTimeout: function (round) {

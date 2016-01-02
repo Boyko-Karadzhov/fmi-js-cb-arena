@@ -84,7 +84,6 @@ Lobby.prototype = {
 			return null;
 
 		var result = this._games[game].ask(player, question);
-		this._ensureGame(game);
 		return result;
 	},
 
@@ -111,7 +110,7 @@ Lobby.prototype = {
 	},
 
 	_ensureGame: function (game) {
-		if (this._games[game] !== undefined && this._games[game].details().state === Game.states.Finished) {
+		if (this._games[game] !== undefined && this._games[game].details().players.length === 0) {
 			delete this._games[game];
 		}
 	}

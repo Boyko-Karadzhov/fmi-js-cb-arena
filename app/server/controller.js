@@ -37,13 +37,16 @@ Controller.prototype = {
             if (this._activeSessions[req.data.nane])
                 delete this._activeSessions[req.data.name];
         }
+        else {
+            this._failSignIn(req);
+        }
     },
 
     newGame: function (req) {
-        if (!req.data || !req.data.options)
-            return;
+        if (this._validate(req.data)) {
+            if (!req.data.options)
+                return;
 
-        if (this._validate(req.data.ticket)) {
             var options = req.data.options;
             if (options.name && options.name.trim() && options.size >= 1 && options.maxRounds >= 1 && options.roundTimeout >= 10 && options.roundTimeout <= 590) {
                 options.name = options.name.trim();
@@ -66,10 +69,10 @@ Controller.prototype = {
     },
 
     join: function (req) {
-        if (!req.data || !req.data.game)
-            return;
+        if (this._validate(req.data)) {
+            if (!req.data.game)
+                return;
 
-        if (this._validate(req.data.ticket)) {
             if (this._lobby.join(req.data.ticket.name, req.data.game)) {
                 req.io.emit('join', req.data.game);
             }
@@ -83,10 +86,10 @@ Controller.prototype = {
     },
 
     gameDetails: function (req) {
-        if (!req.data || !req.data.game)
-            return;
+        if (this._validate(req.data)) {
+            if (!req.data.game)
+                return;
 
-        if (this._validate(req.data.ticket)) {
             var details = this._lobby.gameDetails(req.data.game);
             if (details) {
                 req.io.emit('game-details', details);
@@ -100,11 +103,11 @@ Controller.prototype = {
         }
     },
 
-    _validate: function (ticket) {
-        if (!ticket || !ticket.name || !ticket.code)
+    _validate: function (data) {
+        if (!data || !data.ticket || !data.ticket.name || !data.ticket.code)
             return false;
 
-        return this._lobby.validatePlayer(ticket.name, ticket.code);
+        return this._lobby.validatePlayer(data.ticket.name, data.ticket.code);
     },
 
     _failSignIn: function (req) {

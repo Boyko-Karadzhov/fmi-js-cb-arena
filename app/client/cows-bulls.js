@@ -133,7 +133,7 @@
         this._lobbyFailAlert.hide();
         this._displayName.text(ticket.name);
 
-        this._io.emit('lobby-game-list', ticket);
+        this._io.emit('lobby-game-list', { ticket: ticket });
     };
 
     LobbyView.prototype._onInitialize = function () {
@@ -175,7 +175,7 @@
 
     LobbyView.prototype._signOutButtonClickHandler = function () {
         var ticket = this._getTicket();
-        this._io.emit('sign-out', ticket);
+        this._io.emit('sign-out', { ticket: ticket });
         ticket.code = null;
         ticket.name = null;
         this._container.trigger('switch-view', ['sign-in']);

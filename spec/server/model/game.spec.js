@@ -99,4 +99,25 @@ describe('Game', function () {
 		game.ask(player2, question);
 		expect(game.details().state).toBe(Game.states.Finished);
 	});
+
+	it('should return null for winner while game is not finished', function () {
+		var game = new Game({name: 'some name', size: 1});
+		game.join('my player');
+		expect(game.details().winner).toBe(null);
+	});
+
+	it('should return for winner the player which got the answer first', function () {
+		var player1 = 'my man';
+		var player2 = 'other man';
+		var question = ['1', '2', '3', '4'];
+		var cowsBullsMock = clone(cowsBulls);
+		cowsBullsMock.newSecret = function () { return question; };
+		var game = new Game({name: 'some name', size: 2}, cowsBullsMock);
+		game.join(player1);
+		game.join(player2);
+		game.ask(player1, ['0', '1', '2', '3']);
+		game.ask(player2, question);
+		game.ask(player1, question);
+		expect(game.details().winner).toBe(player2);
+	});
 });
