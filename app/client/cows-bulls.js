@@ -122,6 +122,8 @@
         this._signOutButton = container.find('[cb-role="signout-button"]');
         this._displayName = container.find('[cb-role="display-name"]');
         this._lobbyFailAlert = container.find('[cb-role="lobby-fail-alert"]');
+        this._joinButton = container.find('[cb-role="join-button"]');
+        this._gameNameSpan = container.find('span[cb-bind="data.options.name"]');
     };
 
     LobbyView.prototype = Object.create(CowsBullsViewBase.prototype);
@@ -139,6 +141,7 @@
     LobbyView.prototype._onInitialize = function () {
         this._createNewGameButton.click($.proxy(this._createNewGameButtonClickHandler, this));
         this._signOutButton.click($.proxy(this._signOutButtonClickHandler, this));
+        this._joinButton.click($.proxy(this._joinButtonClickHandler, this));
 
         this._io.on('lobby-game-list', $.proxy(this._gameListHandler, this));
         this._io.on('join', $.proxy(this._joinHandler, this));
@@ -162,11 +165,26 @@
     };
 
     LobbyView.prototype._gameDetailsHandler = function (data) {
+        if (!this._container.is(':visible'))
+            return;
+
         this._gameList.find('a.list-group-item').toggleClass('active', false);
         this._gameList.find('a.list-group-item').filter(function () { return $(this).text() === data.options.name; }).toggleClass('active', true);
 
-        this._detailsContainer.find('h2').text(data.options.name);
+        this._detailsContainer.find('[cb-bind]').each(function () {
+            var jElement = $(this);
+            $(this).text(eval(jElement.attr('cb-bind')));
+        });
+
         this._detailsContainer.show();
+        this._joinButton.prop('disabled', data.state !== 'waiting');
+
+        var that = this;
+        setTimeout(function () {
+            if (that._container.is(':visible')) {
+                that._io.emit('game-details', { ticket: that._getTicket(), game: data.options.name });
+            }
+        }, 3000);
     };
 
     LobbyView.prototype._createNewGameButtonClickHandler = function () {
@@ -179,6 +197,14 @@
         ticket.code = null;
         ticket.name = null;
         this._container.trigger('switch-view', ['sign-in']);
+    };
+
+    LobbyView.prototype._joinButtonClickHandler = function () {
+        this._container.hide();
+        this._io.emit('join', {
+            ticket: this._getTicket(),
+            game: this._gameNameSpan.text()
+        });
     };
 
     LobbyView.prototype._bindList = function (data) {

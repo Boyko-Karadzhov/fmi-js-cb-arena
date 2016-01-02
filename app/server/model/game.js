@@ -139,7 +139,7 @@ Game.prototype = {
 
 	_ensureState: function () {
 		var playerNames = Object.keys(this._playerRounds);
-		if (this._state === Game.states.Waiting && playerNames.length === this._options.size) {
+		if (this._state === Game.states.Waiting && playerNames.length == this._options.size) {
 			this._state = Game.states.Started;
 			this._secret = this._cowsBulls.newSecret();
 			this._setRoundTimeout(this._currentRound);
