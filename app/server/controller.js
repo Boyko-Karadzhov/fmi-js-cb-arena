@@ -103,6 +103,18 @@ Controller.prototype = {
         }
     },
 
+    leave: function (req) {
+        if (this._validate(req.data)) {
+            if (!req.data.game)
+                return;
+
+            this._lobby.leave(req.data.ticket.name, req.data.game);
+        }
+        else {
+            this._failSignIn(req);
+        }
+    },
+
     _validate: function (data) {
         if (!data || !data.ticket || !data.ticket.name || !data.ticket.code)
             return false;

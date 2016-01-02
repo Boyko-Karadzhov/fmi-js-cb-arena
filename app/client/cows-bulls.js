@@ -273,13 +273,32 @@
 
     var InGameView = function (container, io, getTicket) {
         CowsBullsViewBase.call(this, container, io, getTicket);
+
+        this._leaveButton = this._container.find('[cb-role="leave-button"]');
+        this._form = this._container.find('form');
+        this._name = null;
     };
 
     InGameView.prototype = Object.create(CowsBullsViewBase.prototype);
     InGameView.prototype.constructor = InGameView;
 
     InGameView.prototype._onShow = function (data) {
-        this._container.find('h2').text(data);
+        this._container.find('.page-header .h1').text(data);
+        this._name = data;
+    };
+
+    InGameView.prototype._onInitialize = function (data) {
+        this._leaveButton.click($.proxy(this._leaveButtonClickHandler, this));
+        this._form.submit($.proxy(this._formSubmitHandler, this));
+    };
+
+    InGameView.prototype._leaveButtonClickHandler = function () {
+        this._io.emit('leave', { ticket: this._getTicket(), game: this._name });
+        this._container.trigger('switch-view', ['lobby']);
+    };
+
+    InGameView.prototype._formSubmitHandler = function () {
+        return false;
     };
 
     $('[cows-bulls-container]').each(function () {
