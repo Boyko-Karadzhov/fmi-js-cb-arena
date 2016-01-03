@@ -1,14 +1,23 @@
 # fmi-js-cb-arena
 Project for Advanced JS course at FMI. A multiplayer guessing game.
 
-## Running tests
+## Installation
 
-Preparation:
 1. Install Node.js
-1. On the root of the project run:
+1. On the root of the project run in a console:
 
  - `npm install`
  - `npm install jasmine -g`
 
-After preparation steps are done you can run the tests by typing the following line on the root of the project:
-- `jasmine`
+## Running the app
+
+On the root of the project run in a console:
+
+- `npm start`
+- You will now be able to open http://localhost:7076/ where there is a UI for Cows and Bulls.
+
+## Running tests
+
+On the root of the project run in a console:
+
+- `npm test`
