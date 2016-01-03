@@ -108,8 +108,8 @@
     };
 
     SignInView.prototype._failHandler = function () {
-        this._alert.show();
         this._container.trigger('switch-view', ['sign-in']);
+        this._alert.show();
     };
 
     var LobbyView = function (container, io, getTicket) {
@@ -277,10 +277,16 @@
         this._leaveButton = this._container.find('[cb-role="leave-button"]');
         this._form = this._container.find('form');
         this._name = null;
-        this._round = 1;
+        this._round = null;
+        this._timeLeft = null;
+        this._state = null;
+        this._lastQuestionRound = null;
+
         this._tableBody = this._container.find('table tbody');
         this._header = this._container.find('.page-header .h1');
         this._questionInput = this._container.find('[cb-role="question-input"]');
+        this._roundDisplay = this._container.find('[cb-role="round-display"]');
+        this._roundTimerDisplay = this._container.find('[cb-role="round-time-left"]');
     };
 
     InGameView.prototype = Object.create(CowsBullsViewBase.prototype);
@@ -290,12 +296,29 @@
         this._header.text(data);
         this._tableBody.empty();
         this._name = data;
+        this._timeLeft = null;
+        this._round = 1;
+        this._lastQuestionRound = null;
+        this._form.find('button').prop('disabled', false);
+        this._roundDisplay.text(this._round);
+        this._roundTimerDisplay.text(this._timeLeft);
     };
 
     InGameView.prototype._onInitialize = function (data) {
         this._leaveButton.click($.proxy(this._leaveButtonClickHandler, this));
         this._form.submit($.proxy(this._formSubmitHandler, this));
+
         this._io.on('answer', $.proxy(this._answerHandler, this));
+        this._io.on('game-details', $.proxy(this._gameDetailsHandler, this));
+
+        setInterval($.proxy(this._intervalHandler, this), 1000);
+    };
+
+    InGameView.prototype._intervalHandler = function () {
+        if (this._state == 'started' && this._timeLeft > 0) {
+            this._timeLeft = this._timeLeft - 1;
+            this._roundTimerDisplay.text(this._timeLeft);
+        }
     };
 
     InGameView.prototype._answerHandler = function (data) {
@@ -308,6 +331,23 @@
         row.append($('<td />').text(InGameView.answerToString(data.result.answer)));
 
         this._tableBody.append(row);
+    };
+
+    InGameView.prototype._gameDetailsHandler = function (data) {
+        if (data.options.name != this._name)
+            return;
+
+        if (data.round > this._round || (this._state != 'started' && data.state == 'started')) {
+            this._timeLeft = data.options.roundTimeout;
+            this._roundTimerDisplay.text(this._timeLeft);
+        }
+
+        this._round = data.round;
+        this._state = data.state;
+        this._roundDisplay.text(this._round);
+
+        if (this._lastQuestionRound != this._round)
+            this._form.find('button').prop('disabled', false);
     };
 
     InGameView.answerToString = function (answer) {
@@ -331,6 +371,8 @@
     };
 
     InGameView.prototype._formSubmitHandler = function () {
+        this._lastQuestionRound = this._round;
+        this._form.find('button').prop('disabled', true);
         this._io.emit('ask', { ticket: this._getTicket(), game: this._name, question: this._questionInput.val() });
         return false;
     };

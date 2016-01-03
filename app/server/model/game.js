@@ -18,11 +18,12 @@ var defaultOptions = {
 	roundTimeout: 2 * 60
 };
 
-var Game = function (options, cowsBulls) {
+var Game = function (options, cowsBulls, endTurnCallback) {
 	this._state = Game.states.Waiting;
 	this._playerRounds = {};
 	this._secret = null;
 	this._currentRound = 1;
+	this._endTurnCallback = endTurnCallback;
 
 	this._cowsBulls = cowsBulls || cowsBullsModule;
 	this._options = extend(clone(defaultOptions), options);
@@ -124,7 +125,15 @@ Game.prototype = {
 		}
 
 		this._currentRound = this._currentRound + 1;
-		this._setRoundTimeout(this._currentRound);
+		if (this._currentRound > this._options.maxRounds || this._allPlayersGuessedRight()) {
+			this._state = Game.states.Finished;
+		}
+
+		if (this._state === Game.states.Started)
+			this._setRoundTimeout(this._currentRound);
+
+		if (this._endTurnCallback)
+			this._endTurnCallback(this.details());
 	},
 
 	_allPlayersGuessedRight: function () {
@@ -150,6 +159,9 @@ Game.prototype = {
 			this._state = Game.states.Started;
 			this._secret = this._cowsBulls.newSecret();
 			this._setRoundTimeout(this._currentRound);
+
+			if (this._endTurnCallback)
+				this._endTurnCallback(this.details());
 		}
 
 		if (playerNames.length === 0) {

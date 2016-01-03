@@ -50,7 +50,7 @@ Controller.prototype = {
             var options = req.data.options;
             if (options.name && options.name.trim() && options.size >= 1 && options.maxRounds >= 1 && options.roundTimeout >= 10 && options.roundTimeout <= 590) {
                 options.name = options.name.trim();
-                if (this._lobby.newGame(options)) {
+                if (this._lobby.newGame(options, this._endTurnCallback.bind(this))) {
                     req.data.game = options.name;
                     this._broadcastGameList();
                     this.join(req);
@@ -75,6 +75,7 @@ Controller.prototype = {
 
             if (this._lobby.join(req.data.ticket.name, req.data.game)) {
                 req.io.emit('join', req.data.game);
+                this._broadcastGameDetails(req.data.game);
             }
             else {
                 req.io.emit('lobby-fail', 'Could not join "' + req.data.name + '".');
@@ -108,7 +109,9 @@ Controller.prototype = {
             if (!req.data.game)
                 return;
 
-            this._lobby.leave(req.data.ticket.name, req.data.game);
+            if (this._lobby.leave(req.data.ticket.name, req.data.game)) {
+                this._broadcastGameDetails(req.data.game);
+            }
         }
         else {
             this._failSignIn(req);
@@ -120,10 +123,17 @@ Controller.prototype = {
             if (!req.data.game || !req.data.question)
                 return;
 
+            var round = this._lobby.gameDetails(req.data.game).round;
             var result = this._lobby.ask(req.data.ticket.name, req.data.game, req.data.question.split(''));
             if (result) {
                 result.question = result.question.join('');
-                req.io.emit('answer', { game: req.data.game, result: result, round: this._lobby.gameDetails(req.data.game).round });
+                req.io.emit('answer', {
+                    player: req.data.ticket.name,
+                    game: req.data.game,
+                    result: result, round: round
+                });
+
+                this._broadcastGameDetails(req.data.game);
             }
         }
         else {
@@ -147,6 +157,22 @@ Controller.prototype = {
         Object.keys(this._activeSessions).forEach(function (name) {
             that._activeSessions[name].emit('lobby-game-list', that._lobby.gameList());
         });
+    },
+
+    _broadcastGameDetails: function (game) {
+        var details = this._lobby.gameDetails(game);
+        var that = this;
+        if (details) {
+            details.players.forEach(function (val) {
+                if (that._activeSessions[val]) {
+                    that._activeSessions[val].emit('game-details', details);
+                }
+            });
+        }
+    },
+
+    _endTurnCallback: function (details) {
+        this._broadcastGameDetails(details.options.name);
     }
 };
 

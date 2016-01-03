@@ -7,12 +7,13 @@ var Lobby = function () {
 	this._playerActivityTimeout = 10 * 60 * 1000;
 	this._games = {};
 	this._players = {};
+	this._endTurnCallback = null;
 };
 
 Lobby.prototype = {
-	newGame: function (options) {
+	newGame: function (options, endTurnCallback) {
 		if (options.name !== undefined && options.name !== null && this._games[options.name] === undefined) {
-			this._games[options.name] = new Game(options);
+			this._games[options.name] = new Game(options, null, endTurnCallback);
 			return true;
 		}
 		else {
