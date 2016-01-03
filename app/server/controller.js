@@ -115,6 +115,22 @@ Controller.prototype = {
         }
     },
 
+    ask: function (req) {
+        if (this._validate(req.data)) {
+            if (!req.data.game || !req.data.question)
+                return;
+
+            var result = this._lobby.ask(req.data.ticket.name, req.data.game, req.data.question.split(''));
+            if (result) {
+                result.question = result.question.join('');
+                req.io.emit('answer', { game: req.data.game, result: result, round: this._lobby.gameDetails(req.data.game).round });
+            }
+        }
+        else {
+            this._failSignIn(req);
+        }
+    },
+
     _validate: function (data) {
         if (!data || !data.ticket || !data.ticket.name || !data.ticket.code)
             return false;

@@ -85,12 +85,19 @@ Game.prototype = {
 
 		var currentWinner = null;
 		for (var player in this._playerRounds) {
-			if (currentWinner == null || this._playerRounds[player].length < this._playerRounds[currentWinner].length) {
+			if (currentWinner === null || this._playerRounds[player].length < this._playerRounds[currentWinner].length ||
+				(this._playerRounds[player].length === this._playerRounds[currentWinner].length &&
+					this._lastRoundTime(player) < this._lastRoundTime(currentWinner))) {
 				currentWinner = player;
 			}
 		}
 
 		return currentWinner;
+	},
+
+	_lastRoundTime: function (player) {
+		var rounds = this._playerRounds[player];
+		return rounds[rounds.length - 1].time;
 	},
 
 	_setRoundTimeout: function (round) {

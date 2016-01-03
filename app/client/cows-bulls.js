@@ -277,19 +277,52 @@
         this._leaveButton = this._container.find('[cb-role="leave-button"]');
         this._form = this._container.find('form');
         this._name = null;
+        this._round = 1;
+        this._tableBody = this._container.find('table tbody');
+        this._header = this._container.find('.page-header .h1');
+        this._questionInput = this._container.find('[cb-role="question-input"]');
     };
 
     InGameView.prototype = Object.create(CowsBullsViewBase.prototype);
     InGameView.prototype.constructor = InGameView;
 
     InGameView.prototype._onShow = function (data) {
-        this._container.find('.page-header .h1').text(data);
+        this._header.text(data);
+        this._tableBody.empty();
         this._name = data;
     };
 
     InGameView.prototype._onInitialize = function (data) {
         this._leaveButton.click($.proxy(this._leaveButtonClickHandler, this));
         this._form.submit($.proxy(this._formSubmitHandler, this));
+        this._io.on('answer', $.proxy(this._answerHandler, this));
+    };
+
+    InGameView.prototype._answerHandler = function (data) {
+        if (data.game != this._name)
+            return;
+
+        var row = $('<tr />');
+        row.append($('<td />').text(data.round));
+        row.append($('<td />').text(data.result.question));
+        row.append($('<td />').text(InGameView.answerToString(data.result.answer)));
+
+        this._tableBody.append(row);
+    };
+
+    InGameView.answerToString = function (answer) {
+        var bullString, cowString;
+        if (answer.bulls === 1)
+            bullString = 'bull';
+        else
+            bullString = 'bulls';
+
+        if (answer.cows === 1)
+            cowString = 'cow';
+        else
+            cowString = 'cows';
+
+        return answer.bulls + ' ' + bullString + ', ' + answer.cows + ' ' + cowString;
     };
 
     InGameView.prototype._leaveButtonClickHandler = function () {
@@ -298,6 +331,7 @@
     };
 
     InGameView.prototype._formSubmitHandler = function () {
+        this._io.emit('ask', { ticket: this._getTicket(), game: this._name, question: this._questionInput.val() });
         return false;
     };
 

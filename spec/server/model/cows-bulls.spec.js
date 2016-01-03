@@ -26,6 +26,12 @@ describe('Cows & Bulls', function() {
 		result = cowsBulls.evaluate(secret, question);
 		expect(result.cows).toBe(2);
 		expect(result.bulls).toBe(2);
+
+		secret = ['0', '3', '8', '7'];
+		question  = ['0', '1', '2', '3'];
+		result = cowsBulls.evaluate(secret, question);
+		expect(result.cows).toBe(1);
+		expect(result.bulls).toBe(1);
 	});
 
 	it('should return true for a valid question', function () {
