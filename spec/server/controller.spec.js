@@ -161,4 +161,22 @@ describe('Controller', function () {
         expect(req.emitted.length).toBe(1);
         expect(req.emitted[0].name).toBe('lobby-fail');
     });
+
+    it('should broadcast game details to players when new player joins', function () {
+        var game = 'mah game';
+        var player1 = 'my man';
+        var player2 = 'other man';
+        var lobby = new Lobby();
+        var controller = new Controller(lobby);
+        controller._validate = function() { return true; };
+
+        var req1 = new RequestMock(player1);
+        controller.signIn(req1);
+        controller.newGame(new RequestMock({ ticket: { name: player1 }, options: { name: game, size: 1, maxRounds: 20, roundTimeout: 100 } }));
+        var req2 = new RequestMock({ ticket: { name: player2 }, game: game });
+        controller.join(req2);
+
+        expect(req1.emitted.length).toBe(4);
+        expect(req1.emitted[3].name).toBe('game-details');
+    });
 });

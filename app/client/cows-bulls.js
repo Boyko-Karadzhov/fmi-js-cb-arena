@@ -282,11 +282,14 @@
         this._state = null;
         this._lastQuestionRound = null;
 
+        this._playerPanels = {};
+
         this._tableBody = this._container.find('table tbody');
         this._header = this._container.find('.page-header .h1');
         this._questionInput = this._container.find('[cb-role="question-input"]');
         this._roundDisplay = this._container.find('[cb-role="round-display"]');
         this._roundTimerDisplay = this._container.find('[cb-role="round-time-left"]');
+        this._otherPlayerInfoContainer = this._container.find('div.panel-group');
     };
 
     InGameView.prototype = Object.create(CowsBullsViewBase.prototype);
@@ -299,9 +302,11 @@
         this._timeLeft = null;
         this._round = 1;
         this._lastQuestionRound = null;
-        this._form.find('button').prop('disabled', false);
+        this._form.find('button').prop('disabled', true);
         this._roundDisplay.text(this._round);
         this._roundTimerDisplay.text(this._timeLeft);
+        this._playerPanels = {};
+        this._otherPlayerInfoContainer.empty();
     };
 
     InGameView.prototype._onInitialize = function (data) {
@@ -310,6 +315,7 @@
 
         this._io.on('answer', $.proxy(this._answerHandler, this));
         this._io.on('game-details', $.proxy(this._gameDetailsHandler, this));
+        this._io.on('answer-spy', $.proxy(this._answerSpyHandler, this));
 
         setInterval($.proxy(this._intervalHandler, this), 1000);
     };
@@ -333,6 +339,19 @@
         this._tableBody.append(row);
     };
 
+    InGameView.prototype._answerSpyHandler = function (data) {
+        if (data.game != this._name)
+            return;
+
+        if (this._playerPanels[data.player]) {
+            this._playerPanels[data.player].find('ul').append($('<li class="list-group-item">Round ' + data.round + ': ' + InGameView.answerToString(data.answer) + '</li>'));
+            if (data.answer.bulls === 4) {
+                this._playerPanels[data.player].toggleClass('panel-default', false);
+                this._playerPanels[data.player].toggleClass('panel-success', true);
+            }
+        }
+    };
+
     InGameView.prototype._gameDetailsHandler = function (data) {
         if (data.options.name != this._name)
             return;
@@ -348,6 +367,13 @@
 
         if (this._lastQuestionRound != this._round)
             this._form.find('button').prop('disabled', false);
+
+        this._createMissingOpponentPanels(data.players);
+        this._removeExtraOpponentPanels(data.players);
+
+        if (data.winner) {
+            this._header.text(this._name + ': Winner is ' + data.winner);
+        }
     };
 
     InGameView.answerToString = function (answer) {
@@ -363,6 +389,34 @@
             cowString = 'cows';
 
         return answer.bulls + ' ' + bullString + ', ' + answer.cows + ' ' + cowString;
+    };
+
+    InGameView.prototype._removeExtraOpponentPanels = function (players) {
+        var panels = Object.keys(this._playerPanels);
+        for (var i = 0; i < panels.length; i++) {
+            if (players.indexOf(panels[i]) < 0) {
+                this._playerPanels[panels[i]].remove();
+                delete this._playerPanels[panels[i]];
+            }
+        }
+    };
+
+    InGameView.prototype._createMissingOpponentPanels = function (players) {
+        var playerPanel, panelHeadDiv, panelBodyDiv;
+        for (var i = 0; i < players.length; i++) {
+            if (!this._playerPanels[players[i]]) {
+                panelHeadDiv = $('<div class="panel-heading" />');
+                panelHeadDiv.append($('<a class="panel-title" data-toggle="collapse" href="#collapse-' + players[i] + '">' + players[i] + '</a>'));
+                panelBodyDiv = $('<div class="panel-collapse collapse" id="collapse-' + players[i] + '" />');
+                panelBodyDiv.append($('<ul class="list-group" />'));
+
+                playerPanel = $('<div class="panel panel-default" />');
+                playerPanel.append(panelHeadDiv);
+                playerPanel.append(panelBodyDiv);
+                this._playerPanels[players[i]] = playerPanel;
+                this._otherPlayerInfoContainer.append(playerPanel);
+            }
+        }
     };
 
     InGameView.prototype._leaveButtonClickHandler = function () {

@@ -134,6 +134,7 @@ Controller.prototype = {
                 });
 
                 this._broadcastGameDetails(req.data.game);
+                this._broadcastAnswer(req.data.game, req.data.ticket.name, result.answer, round);
             }
         }
         else {
@@ -161,11 +162,25 @@ Controller.prototype = {
 
     _broadcastGameDetails: function (game) {
         var details = this._lobby.gameDetails(game);
+        this._broadcastToGame(game, 'game-details', details);
+    },
+
+    _broadcastAnswer: function (game, player, answer, round) {
+        this._broadcastToGame(game, 'answer-spy', {
+            game: game,
+            player: player,
+            answer: answer,
+            round: round
+        });
+    },
+
+    _broadcastToGame: function (game, eventName, data) {
+        var details = this._lobby.gameDetails(game);
         var that = this;
         if (details) {
             details.players.forEach(function (val) {
                 if (that._activeSessions[val]) {
-                    that._activeSessions[val].emit('game-details', details);
+                    that._activeSessions[val].emit(eventName, data);
                 }
             });
         }
