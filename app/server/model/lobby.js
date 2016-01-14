@@ -7,7 +7,6 @@ var Lobby = function () {
 	this._playerActivityTimeout = 10 * 60 * 1000;
 	this._games = {};
 	this._players = {};
-	this._endTurnCallback = null;
 };
 
 Lobby.prototype = {

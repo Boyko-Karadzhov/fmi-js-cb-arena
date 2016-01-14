@@ -33,9 +33,9 @@ Controller.prototype = {
 
     signOut: function (req) {
         if (this._validate(req.data)) {
-            this._lobby.signOut(req.data.name);
-            if (this._activeSessions[req.data.nane])
-                delete this._activeSessions[req.data.name];
+            this._lobby.signOut(req.data.ticket.name);
+            if (this._activeSessions[req.data.ticket.name])
+                delete this._activeSessions[req.data.ticket.name];
         }
         else {
             this._failSignIn(req);
