@@ -296,7 +296,7 @@
     InGameView.prototype.constructor = InGameView;
 
     InGameView.prototype._onShow = function (data) {
-        this._header.text(data);
+        this._header.text(data + " as " + this._getTicket().name);
         this._tableBody.empty();
         this._name = data;
         this._timeLeft = null;
